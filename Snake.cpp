@@ -15,6 +15,7 @@ void draw();
 void input();
 void setup();
 void tailCreating(int x, int y);
+void showInfo();
 
 const int NO_TYPE = 0;
 const int HEAD_TYPE = 1;
@@ -23,6 +24,7 @@ const int APPLE_TYPE = 3;
 const int DEFAULT_NUMBER_OF_SNAKE_ELEMENTS = 5;
 
 const string TAIL_SYMBOL = "\x1b[32m█\x1b[0m"/*"▢█"*/;
+const string SECONDARY_TAIL_SYMBOL = "\x1b[33m█\x1b[0m"/*"▢█"*/;
 const string HEAD_SYMBOL = "█"/*"\x1b[32m█\x1b[0m"*//*"▣"*/;
 const string BOTTOM_BORDER_SYMBOL = "\x1b[37m█\x1b[0m"/*"▀"*/;
 const string TOP_BORDER_SYMBOL = "\x1b[37m█\x1b[0m"/*"▄"*/;
@@ -33,7 +35,9 @@ int width;
 int height;
 int score;
 int isFinished;
-int deltaTime;
+int tempCounter = 0;
+
+float deltaTime;
 
 bool isMoveWasMaked = true;
 
@@ -62,11 +66,18 @@ class Cell {
 public:
 
 	int type;
+	int colorCode = 0;
 	Point coords;
 
 	Cell(int type, Point coords) {
 		this->type = type;
 		this->coords = coords;
+	}
+
+	Cell(int type, Point coords, int colorCode) {
+		this->type = type;
+		this->coords = coords;
+		this->colorCode = colorCode;
 	}
 
 	Cell() {}
@@ -110,7 +121,10 @@ public:
 		head = Cell(HEAD_TYPE, coords);
 
 		for (int i = 0; i < startLength; i++) {
-			snakeElements[i] = Cell(BODY_TYPE, Point(headX+i+1, headY));
+			if (i % 2 == 0)
+				snakeElements[i] = Cell(BODY_TYPE, Point(headX+i+1, headY), 1);
+			else 
+				snakeElements[i] = Cell(BODY_TYPE, Point(headX+i+1, headY), 2);
 		}
 
 	}
@@ -142,7 +156,7 @@ public:
 			head.coords.y += 1;
 		}
 
-		if (head.coords.x < 1 || head.coords.x > width-1 || head.coords.y > height-1 || head.coords.y < 0) {
+		if (head.coords.x < 1 || head.coords.x > width || head.coords.y > height-1 || head.coords.y < 0) {
 			isFinished = true;
 			return;
 		}
@@ -180,7 +194,8 @@ public:
 			tailCreating(newElementX, newElementY);
 
 			spawnApple();
-			score += 1;
+			deltaTime += 0.2;
+			score += deltaTime*100;
 		}
 
 		for (int i = 0; i < length; i++) {
@@ -204,20 +219,25 @@ Snake snake;
 
 void tailCreating(int x, int y) {
 	snake.length++;
-	snake.snakeElements.push_back(Cell(2,Point(x,y)));
+	int colorCode;
+	if (snake.length % 2 != 0)
+		colorCode = 1;
+	else 
+		colorCode = 2;
+	snake.snakeElements.push_back(Cell(2,Point(x,y),colorCode));
 }
 
 void draw() {
 
 	system("clear");
 
-	for (int i = 0; i < width+1; i++)
+	for (int i = 0; i < width+2; i++)
 		cout << TOP_BORDER_SYMBOL;
 	cout << endl;
 
 	for (int i = 0; i < height; i++) {
-		for (int j = 0;j < width+1; j++) {
-			if (j == 0 || j == width)
+		for (int j = 0;j < width+2; j++) {
+			if (j == 0 || j == width+1)
 				cout << DEFAULT_BORDER_SYMBOL;
 			else {
 				if (snake.head.coords.y == i && snake.head.coords.x == j)
@@ -228,7 +248,11 @@ void draw() {
 					bool flag = true;
 					for (int z = 0; z < snake.length; z++) {
 						if (snake.snakeElements[z].coords.y == i && snake.snakeElements[z].coords.x == j) {
-							cout << TAIL_SYMBOL;
+							int temp = snake.snakeElements[z].colorCode;
+							if (temp == 1)
+								cout << TAIL_SYMBOL;
+							else if (temp == 2)
+								cout << SECONDARY_TAIL_SYMBOL;
 							flag = false;
 							break;
 						}
@@ -240,12 +264,16 @@ void draw() {
 				}
 			}
 		}
+
 		cout << endl;
+
 	}
 
-	for (int i = 0; i < width+1; i++)
+	for (int i = 0; i < width+2; i++)
 		cout << BOTTOM_BORDER_SYMBOL;
 	cout << endl;
+
+	//showInfo();
 
 }
 
@@ -295,9 +323,11 @@ void input() {
 
 void spawnApple() {
 
-	while (true) {
+	bool flag = true;
 
-		int x = rand() % width;
+	while (flag) {
+
+		int x = (rand() % width)+1;
 		int y = rand() % height;
 
 		if (snake.head.coords.x == x && snake.head.coords.y == y)
@@ -320,7 +350,7 @@ void spawnApple() {
 
 void setup() {
 
-	width = 20;
+	width = 15;
 	height = 15;
 	score = 0;
 	isFinished = false;
@@ -328,8 +358,22 @@ void setup() {
 	snake = Snake(3);
 	spawnApple();
 
-	cout << "\e[8;" << height+4<< ";" << width*2+2 <<";t";
+	cout << "\e[8;" << height+4<< ";" << width*2+4 <<";t";
 
+}
+
+void showInfo() {
+	//cout << "Hello";
+	//cout << "\x1b[33mДлинна\x1b[0m" << endl;
+	//"\x1b[32m█\x1b[0m"
+	cout << "\x1b[33mLength: " << snake.length << "\x1b[0m" << "   ";
+	cout << "\x1b[33mSpeed: " << deltaTime << "\x1b[0m" << "   ";
+	//cout << "\x1b[33mScore: \x1b[0m" << "\x1b[33m" << score << "\x1b[0m" << "   ";
+	cout << "\x1b[33mSnake X Y: \x1b[0m" << "\x1b[33m" << snake.head.coords.x << " " << snake.head.coords.y << "\x1b[0m" << endl;
+	cout << "\x1b[33mApple X Y: \x1b[0m" << "\x1b[33m" << currentApple.coords.x << " " << currentApple.coords.y << "\x1b[0m"<< endl;
+	//for (int i = 0; i < snake.length; i++) {
+		//cout << "\x1b[33mTail X Y: \x1b[0m" << "\x1b[33m" << snake.snakeElements[i].coords.x << " " << snake.snakeElements[i].coords.y << "\x1b[0m"<< endl;
+	//}
 }
 
 int main() {
@@ -351,13 +395,13 @@ int main() {
 		if (isFinished)
 			break;
 		draw();
-		snake.ShowInfo();
+		showInfo();
 		usleep(1000000/deltaTime);
 	}	
 
 	system("clear");
-	cout << "\x1b[31mКонец игры!\x1b[0m" << endl;
-	printf("\x1b[32mВаш счет: %d\x1b[1m", score);
+	cout << "\x1b[41;37m   GAME OVER!   \x1b[0m" << endl;
+	printf("\x1b[37mYour score: %d\x1b[0m", score);
 	cout << endl;
 
 
