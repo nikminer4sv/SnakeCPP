@@ -194,8 +194,9 @@ public:
 			tailCreating(newElementX, newElementY);
 
 			spawnApple();
-			deltaTime += 0.2;
 			score += deltaTime*100;
+			deltaTime += 0.2;
+
 		}
 
 		for (int i = 0; i < length; i++) {
@@ -333,10 +334,15 @@ void spawnApple() {
 		if (snake.head.coords.x == x && snake.head.coords.y == y)
 			continue;
 
+		int counter = 0;
+
 		for (int i = 0; i < snake.length; i++) {
 			if (snake.snakeElements[i].coords.x == x && snake.snakeElements[i].coords.y == y) 
-				continue;
+				counter++;
 		}
+
+		if (counter > 0)
+			continue;
 
 		currentApple.coords.x = x;
 		currentApple.coords.y = y;
@@ -366,11 +372,12 @@ void showInfo() {
 	//cout << "Hello";
 	//cout << "\x1b[33mДлинна\x1b[0m" << endl;
 	//"\x1b[32m█\x1b[0m"
-	cout << "\x1b[33mLength: " << snake.length << "\x1b[0m" << "   ";
-	cout << "\x1b[33mSpeed: " << deltaTime << "\x1b[0m" << "   ";
+	cout << "\x1b[33mLength: " << snake.length << "\x1b[0m" << " ";
+	cout << "\x1b[33mSpeed: " << deltaTime << "\x1b[0m" << " ";
+	cout << "\x1b[33mScore: " << score << "\x1b[0m" << endl;
 	//cout << "\x1b[33mScore: \x1b[0m" << "\x1b[33m" << score << "\x1b[0m" << "   ";
-	cout << "\x1b[33mSnake X Y: \x1b[0m" << "\x1b[33m" << snake.head.coords.x << " " << snake.head.coords.y << "\x1b[0m" << endl;
-	cout << "\x1b[33mApple X Y: \x1b[0m" << "\x1b[33m" << currentApple.coords.x << " " << currentApple.coords.y << "\x1b[0m"<< endl;
+	//cout << "\x1b[33mSnake X Y: \x1b[0m" << "\x1b[33m" << snake.head.coords.x << " " << snake.head.coords.y << "\x1b[0m" << endl;
+	//cout << "\x1b[33mApple X Y: \x1b[0m" << "\x1b[33m" << currentApple.coords.x << " " << currentApple.coords.y << "\x1b[0m"<< endl;
 	//for (int i = 0; i < snake.length; i++) {
 		//cout << "\x1b[33mTail X Y: \x1b[0m" << "\x1b[33m" << snake.snakeElements[i].coords.x << " " << snake.snakeElements[i].coords.y << "\x1b[0m"<< endl;
 	//}
